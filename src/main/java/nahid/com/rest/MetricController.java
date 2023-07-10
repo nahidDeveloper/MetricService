@@ -43,7 +43,8 @@ public class MetricController {
 	    	 Optional<Metric> optionalMetric = metricRepository.findById(id);
 
 	         if (optionalMetric.isEmpty()) {
-	             return ResponseEntity.notFound().build();
+//	             return ResponseEntity.notFound().build();
+	        	 throw new MetricNotFoundException("Metric not found");
 	         }
 	         //Metric with ID exists so we can update Values
 	         Metric metric = optionalMetric.get();
@@ -68,7 +69,8 @@ public class MetricController {
 	    	Optional<Metric> optionalMetric = metricRepository.findById(id);
 	        
 	        if (optionalMetric.isEmpty()) {
-	            return ResponseEntity.notFound().build();
+//	            return ResponseEntity.notFound().build();
+	        	throw new MetricNotFoundException("Metric not found");
 	        }
 	        
 	        Metric metric = optionalMetric.get();
