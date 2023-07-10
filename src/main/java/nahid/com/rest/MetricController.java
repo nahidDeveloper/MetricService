@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/metrics")
 public class MetricController {
 	 private final MetricRepository metricRepository;
+	 private static final Logger logger = LogManager.getLogger(MetricController.class);
 
 	    @Autowired
 	    public MetricController(MetricRepository metricRepository) {
@@ -37,13 +40,14 @@ public class MetricController {
 	    	if(updatedMetric.getSystem()==null || updatedMetric.getSystem().isEmpty()||
 	    			updatedMetric.getName()==null || updatedMetric.getName().isEmpty()||
 	    			updatedMetric.getDate()==null) {
+	    		logger.error("Bad request, illgal parameters in request");
 	    		return ResponseEntity.badRequest().build();
 	    	}
 	    	
 	    	 Optional<Metric> optionalMetric = metricRepository.findById(id);
 
 	         if (optionalMetric.isEmpty()) {
-//	             return ResponseEntity.notFound().build();
+	        	 logger.error("Metric does not exist");
 	        	 throw new MetricNotFoundException("Metric not found");
 	         }
 	         //Metric with ID exists so we can update Values
@@ -54,11 +58,14 @@ public class MetricController {
 
 	         if (updatedMetric.getValue() != null) {
 	             metric.setValue(updatedMetric.getValue());
+	             logger.info("Metric changed to set value");
 	         } else {
 	             metric.setValue(metric.getValue() + 1);
+	             logger.info("Metric Value not set so incremented by 1");
 	         }
 
 	         Metric newlyUpdatedMetric = metricRepository.save(metric);
+	         logger.info("Metric updated");
 	         return ResponseEntity.ok(newlyUpdatedMetric);
 	    	
 	    }
@@ -69,11 +76,12 @@ public class MetricController {
 	    	Optional<Metric> optionalMetric = metricRepository.findById(id);
 	        
 	        if (optionalMetric.isEmpty()) {
-//	            return ResponseEntity.notFound().build();
+	        	logger.error("Metric does not exist");
 	        	throw new MetricNotFoundException("Metric not found");
 	        }
 	        
 	        Metric metric = optionalMetric.get();
+	        logger.info("Metric Found");
 	        return ResponseEntity.ok(metric);
 	    }
 	    
@@ -114,7 +122,7 @@ public class MetricController {
 	            // No filtering parameters provided, retrieve all metrics for the system
 	            metrics = metricRepository.findBySystem(system);
 	        }
-
+	    	 logger.info("Metric(s) Found");
 	        return ResponseEntity.ok(metrics);
 	    	
 	    }
@@ -123,11 +131,13 @@ public class MetricController {
 	    public ResponseEntity<?> createMetric(@RequestBody Metric metric) {
 	    	if(metric.getSystem()==null || metric.getSystem().isEmpty()||
 	    			metric.getName()==null || metric.getName().isEmpty()) {
+	    		logger.error("Bad request, illgal parameters in request");
 	    		return ResponseEntity.badRequest().build();
 	    	}
 	    	metric.setValue(1);
 	    	metric.setDate(Instant.now());
 	        Metric createdMetric = metricRepository.save(metric);
+	        logger.info("New Metric saved");
 	        return ResponseEntity.ok(createdMetric);
 
 	    }
